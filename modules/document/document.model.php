@@ -239,6 +239,7 @@ class DocumentModel extends Document
 		$sort_check = self::_setSortIndex($obj, $load_extra_vars);
 		$obj->sort_index = $sort_check->sort_index;
 		$obj->isExtraVars = $sort_check->isExtraVars;
+		$obj->isExtraVarsNumber = $sort_check->isExtraVarsNumber;
 		$obj->except_notice = $except_notice;
 		$obj->columnList = $columnList;
 
@@ -1348,6 +1349,7 @@ class DocumentModel extends Document
 		$args = new stdClass;
 		$args->sort_index = $obj->sort_index ?? null;
 		$args->isExtraVars = false;
+		$args->isExtraVarsNumber = false;
 
 		// check it's default sort
 		$default_sort = array('list_order', 'regdate', 'last_update', 'update_order', 'readed_count', 'voted_count', 'blamed_count', 'comment_count', 'trackback_count', 'uploaded_count', 'title', 'category_srl');
@@ -1367,6 +1369,14 @@ class DocumentModel extends Document
 		foreach($extra_keys as $idx => $key)
 		{
 			$eids[] = $key->eid;
+			if ($key->eid == $args->sort_index)
+			{
+				$args->isExtraVars = true;
+				if ($key->type == 'number')
+				{
+					$args->isExtraVarsNumber = true;
+				}
+			}
 		}
 
 		// check it exists in extra keys of the module
@@ -1376,7 +1386,6 @@ class DocumentModel extends Document
 			return $args;
 		}
 
-		$args->isExtraVars = true;
 		return $args;
 	}
 
@@ -1558,7 +1567,14 @@ class DocumentModel extends Document
 					$args->sort_lang = Context::getLangType();
 					$args->sort_index = 'extra_sort.value';
 				}
-				$query_id = 'document.getDocumentListWithExtraVars';
+				if ($searchOpt->isExtraVarsNumber)
+				{
+					$query_id = 'document.getDocumentListWithExtraVarsOrderbyNumber';
+				}
+				else
+				{
+					$query_id = 'document.getDocumentListWithExtraVars';
+				}
 			}
 			else
 			{
